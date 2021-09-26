@@ -53,10 +53,12 @@ class SingleSpider(scrapy.Spider):
             return
         elif '/infografik' in response.request.url:
             return
-        if ''.join(response.css('p.non-card ::text').getall()) == '':
-            text = ''.join(
-                response.css('div.text.text-cb0102::text').getall())
-        else:
+        text = ''.join(response.css('[class^="text text"]::text'
+                                    ).getall()).strip()
+        if text == '':
+            text = ''.join(response.css('[class^="text  text"]::text'
+                                        ).getall()).strip()
+        if text == '':
             text = ''.join(response.css('p.non-card ::text').getall())
         if '/yazarlar/' in response.request.url:
             yield {
