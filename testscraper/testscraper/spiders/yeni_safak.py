@@ -38,34 +38,52 @@ class AllSpider(scrapy.Spider):
         yield scrapy.Request(url)
 
 
-with open('yenisafakhaberleri.json') as json_file:
+with open('yenisafak_1.json') as json_file:
     news_pages = load(json_file)
 
 
-# class SingleSpider(scrapy.Spider):
-#     name = 'yeni_safak'
-#     start_urls = [a.get('link') for a in news_pages]
-#
-#     def parse(self, response, **kwargs):
-#         try:
-#             yazar = response.css('ul.list-inline.mb-0').css('li')[2].css(
-#                 'span').css('a::text').get()
-#         except IndexError:
-#             yazar = ''
-#         try:
-#             tarih = response.css('ul.list-inline.mb-0').css('li')[1].css(
-#                 'span::text').get()
-#         except IndexError:
-#             tarih = response.css('ul.list-inline').css('li')[1].css(
-#                 'span::text').get()
-#         yield {
-#             'Url': response.request.url,
-#             'Baslik': response.css('div.panel-title > h1.font-bold::text'
-#                                    ).get(),
-#             'Tarih': tarih,
-#             'Detay': (''.join(response.css('div.text > p ::text').getall()).
-#                       replace("\r", "").replace("\n", "").replace("\xa0", " ")
-#                       ),
-#             'Yazar': yazar,
-#             'Haber / Kose Yazisi / Konusma': 'Haber'
-#         }
+class SingleSpider(scrapy.Spider):
+    name = 'yeni_safak'
+    start_urls = [a.get('link') for a in news_pages]
+
+    def parse(self, response, **kwargs):
+        if '/foto-galeri' in response.request.url:
+            return
+        elif '/video-galeri' in response.request.url:
+            return
+        elif '/infografik' in response.request.url:
+            return
+        if ''.join(response.css('p.non-card ::text').getall()) == '':
+            text = ''.join(
+                response.css('div.text.text-cb0102::text').getall())
+        else:
+            text = ''.join(response.css('p.non-card ::text').getall())
+        if '/yazarlar/' in response.request.url:
+            yield {
+                'Url': response.request.url,
+                'Baslik': response.css('div.title > h1::text').get(),
+                'Tarih': response.css('time.item.time::text').get().partition(
+                    ',')[0],
+                'Detay': text.replace("\r", "").replace("\n", "").replace(
+                    "\xa0", " "),
+                'Yazar': ''.join(response.css('div.author-bio div.name ::text'
+                                              ).getall()).strip(),
+                'Haber / Kose Yazisi / Konusma': 'Kose Yazisi'
+            }
+        else:
+            try:
+                response.css('time.item.time::text').get().partition(',')[0]
+            except AttributeError:
+                referer_url = response.request.meta['redirect_urls']
+                print(referer_url, 'failed')
+                return
+            yield {
+                'Url': response.request.url,
+                'Baslik': response.css('h1.title::text').get(),
+                'Tarih': response.css('time.item.time::text').get().partition(
+                    ',')[0],
+                'Detay': text.replace("\r", "").replace("\n", "").replace(
+                    "\xa0", " "),
+                'Yazar': response.css('strong.name::text').get(),
+                'Haber / Kose Yazisi / Konusma': 'Haber'
+            }

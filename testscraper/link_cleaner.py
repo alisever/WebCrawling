@@ -1,13 +1,14 @@
 from json import load, dump
 import requests
 
-with open('old_files/yenisafak_cleaned.json') as json_file:
-    news_pages = load(json_file)
-print(len(news_pages))
-with open('yenisafak.json', 'w') as json_file:
-    dump(news_pages, json_file, indent=4)
-exit()
-
+# with open('yenisafak.json') as json_file:
+#     news_pages = json_file.read()
+#     # news_pages = load(json_file)
+#
+# with open('yenisafak_1.json', 'w') as json_file:
+#     json_file.write(news_pages)
+#     # dump(news_pages, json_file, indent=4)
+# exit()
 with open('old_files/yenisafakhaberleri.json') as json_file:
     news_pages = load(json_file)
 

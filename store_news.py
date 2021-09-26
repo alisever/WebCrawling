@@ -1,9 +1,11 @@
 import pandas as pd
+import json
+df = pd.read_json('./testscraper/yenisafak_2.json')
 
-df = pd.read_json('./testscraper/ortadoguhaberleri.json')
+df = df[df['Detay'] == '']['Url']
+missing = list(df)
+print(missing[0:10])
 
-df.replace('iremnur', 'İrem Nur Kaya', inplace=True)
-
-df['Tarih'] = df['Tarih'].apply(lambda x: x[:-6])
-
+with open('testscraper/yenisafak_missing.json', 'w') as json_file:
+    json.dump(missing, json_file)
 # df.to_excel('ortadoguhaberleri.xlsx', index=False)
