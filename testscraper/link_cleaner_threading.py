@@ -4,10 +4,10 @@ from json import load, dumps
 import requests
 import codecs
 
-with codecs.open('old_files/yenisafakhaberleri.json', encoding='utf-8') as json_file:
+with codecs.open('yenisafakhaberleri.json', encoding='utf-8') as json_file:
     news_pages = load(json_file)
 
-with open('old_files/yenisafak_cleaned.csv', 'r') as file:
+with open('yenisafak_cleaned.csv', 'r') as file:
     # fixed = "".join(line for line in file if line.startswith('https'))
     fixed = file.read()
 

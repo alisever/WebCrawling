@@ -1,11 +1,11 @@
 from json import load, dump
 import requests
 
-with open('yenisafak_missing.json') as json_file:
+with open('yenisafak_5.json') as json_file:
     # news_pages = json_file.read()
     news_pages = load(json_file)
 
-with open('yenisafak_missing_clean.json', 'w') as json_file:
+with open('yenisafak_5.json', 'w') as json_file:
     # json_file.write(news_pages)
     dump(news_pages, json_file, indent=4)
 exit()
