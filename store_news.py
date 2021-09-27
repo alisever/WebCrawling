@@ -1,10 +1,9 @@
 import pandas as pd
 import json
-df = pd.read_json('./testscraper/yenisafak_4.json')
+df = pd.read_json('./testscraper/posta_2.json')
 
-df = df[df['Detay'] != '']
-
+df = df[df['Detay'] == '']
 print(df.shape)
-print(len(df['Url'].unique()))
+print(df['Url'].iloc[1])
 
-df.to_excel('yenisafak.xlsx', index=False)
+# df.to_excel('posta.xlsx', index=False)
