@@ -1,14 +1,16 @@
+import json
 import pandas as pd
 
-df = pd.read_json('old_files/Posta/posta_3.json')
+all_dicts = []
+with open('milliyet_json_data.txt') as f:
+    lines = f.readlines()
+    for line in lines:
+        line_dict = json.load(line)
+        all_dicts.append(line_dict)
 
-# df = df[df['Detay'] == '']
-# print(df.shape)
-# print(df['Url'].iloc[1])
+with open('milliyet.json', 'w') as f:
+    json.dump(all_dicts, f)
 
-# df.to_excel('posta.xlsx', index=False)
-
-# row = 3500
+# df = pd.read_json('yeni_akit1.json')
 #
-# print(df.iloc[row]['Url'])
-# print(df.iloc[row]['Detay'])
+# df.to_excel('yeni_akit.xlsx', index=False)
