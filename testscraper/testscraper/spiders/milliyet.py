@@ -9,19 +9,23 @@ def tidy(text):
     return tidy_text
 
 
-base = 'https://www.milliyet.com.tr/haberleri/feto'
+base = 'https://www.milliyet.com.tr/api/search/searchcontentloadmore?' \
+       'query=feto&page={}&isFromNewsSearchPage=true'
 
 
 class AllSpider(Spider):
     name = 'milliyet_all'
-    start_urls = [base]
+    page_no = 1
+    start_urls = [base.format(page_no)]
 
     def parse(self, response, **kwargs):
-        yield {
-            'link': response
-        }
+        for link in response.css('div.news__item.col-md-12.col-sm-6 a::attr(href)'):
+            yield {
+                'link': link
+            }
 
 
+exit()
 with open('') as json_file:
     news_pages = json.load(json_file)
 
