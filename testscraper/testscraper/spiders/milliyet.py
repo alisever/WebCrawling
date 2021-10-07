@@ -8,6 +8,7 @@ def tidy(text):
                  .replace('\xa0', ' ').strip())
     return tidy_text
 
+
 base = 'https://www.milliyet.com.tr/haberleri/feto'
 
 
