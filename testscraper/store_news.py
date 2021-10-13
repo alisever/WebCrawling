@@ -1,31 +1,36 @@
 import json
 import pandas as pd
 
-# df = pd.read_json('../old_files/Milliyet/milliyet9.json')
+# months = ['',
+#     'Ocak',
+#     '\u015eubat',
+#     'Mart',
+#     'Nisan',
+#     'May\u0131s',
+#     'Haziran',
+#     'Temmuz',
+#     'A\u011fustos',
+#     'Eyl\u00fcl',
+#     'Ekim',
+#     'Kas\u0131m',
+#     'Aral\u0131k'
+# ]
 #
-# df.to_excel('milliyet.xlsx', index=False)
-
-with open('haberturk1.json') as fp:
-    all_links = json.load(fp)
-
-links = []
-for item in all_links:
-    link = item['link']
-    if '.jpg' in link:
-        continue
-    if '.png' in link:
-        continue
-    if 'https://im.haberturk.com/' in link:
-        continue
-    if 'https://www.haberturk.com/' not in link:
-        continue
-    if 'https://www.haberturk.com/secim/secim2019/' in link:
-        continue
-    if 'https://www.haberturk.com/secim/secim2015/' in link:
-        continue
-    if 'https://www.haberturk.com/secim/secimAday2015/' in link:
-        continue
-    links.append({'link': link})
-
-with open('haberturk_links.json', 'w') as fp:
-    json.dump(links, fp)
+# dates = ['23 Eyl\u00fcl 2016 Cuma, 10:50', '08 Eyl\u00fcl 2021 \u00c7ar\u015famba']
+#
+#
+# def date_cleaner(date):
+#     if date[2] == '.':
+#         return date.partition(' ')[0]
+#     else:
+#         start = ' '.join(date.split(' ')[:3])
+#         split = start.split(' ')
+#         converted = f'{split[0]}.{"0" * (2 - len(str(months.index(split[1]))))}{months.index(split[1])}.{split[2]}'
+#         return converted
+#
+# df = pd.read_json('../old_files/Haberturk/haberturk6.json')
+#
+# df['Tarih'] = df['Tarih'].map(date_cleaner)
+#
+# print(df['Tarih'][0:10])
+# df.to_excel('haberturk.xlsx', index=False)

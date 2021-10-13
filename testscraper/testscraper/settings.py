@@ -14,10 +14,10 @@ NEWSPIDER_MODULE = 'testscraper.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'testscraper (+http://www.yourdomain.com)'
+# USER_AGENT = 'Googlebot-Image/1.0'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
