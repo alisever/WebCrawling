@@ -1,6 +1,7 @@
 import json
+import random
 
-from scrapy import Spider
+from scrapy import Spider, Request
 
 
 def tidy(text):
@@ -11,13 +12,21 @@ def tidy(text):
 
 base = 'https://www.dirilispostasi.com/ara?key=fet%C3%B6&page={}'
 
+with open('agents.txt', 'r') as f:
+    agents = [line.rstrip() for line in f.readlines()]
+
 
 class AllSpider(Spider):
     name = 'dirilis_all'
 
     start_urls = [base.format(i) for i in range(1, 752)]
 
+    def start_requests(self):
+        for url in self.start_urls:
+            yield Request(url=url, headers={'User-agent': random.choice(agents)}, dont_filter=True)
+
     def parse(self, response, **kwargs):
+        print(response.status)
         for link in response.css('h3.b > a::attr(href)').getall():
             yield {
                 'link': link
