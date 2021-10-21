@@ -8,7 +8,6 @@ def create_connection(db_file):
         return conn
     except Error as e:
         print(e)
-        return None
 
 
 def create_table(conn, create_table_sql):
@@ -19,7 +18,7 @@ def create_table(conn, create_table_sql):
         print(e)
 
 
-def create_tables(conn, db):
+def create_tables(conn):
     new_urls_table = """ CREATE TABLE IF NOT EXISTS new_urls (
                          url text NOT NULL
                          ); """
@@ -78,7 +77,7 @@ def delete_row(conn, table, url):
 def main():
     database = "sozcu.db"
     conn = create_connection(database)
-    create_tables(conn, database)
+    create_tables(conn)
     conn.close()
 
 
