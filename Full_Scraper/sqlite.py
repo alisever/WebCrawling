@@ -2,9 +2,9 @@ import sqlite3
 from sqlite3 import Error
 
 
-def create_connection(db_file):
+def create_connection():
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect("sozcu.db")
         return conn
     except Error as e:
         print(e)
@@ -57,11 +57,19 @@ def create_tables(conn):
 
 
 def insert_row(conn, table, url):
-    sql = f''' INSERT INTO {table} (url)
-               VALUES(?) '''
     cur = conn.cursor()
-    cur.execute(sql, (url,))
+    cur.execute(f"INSERT INTO {table} (url) VALUES('{url}');")
     conn.commit()
+    return cur.lastrowid
+
+
+def insert_row_if_not_in(conn, table, url):
+    cur = conn.cursor()
+    cur.execute(f"SELECT * FROM {table} WHERE url = '{url}'")
+    rows = cur.fetchall()
+    if url not in [a[0] for a in rows]:
+        cur.execute(f"INSERT INTO {table} (url) VALUES('{url}')")
+        conn.commit()
     return cur.lastrowid
 
 
@@ -69,19 +77,17 @@ def select_all_rows(conn, table):
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM {table}")
     rows = cur.fetchall()
-    return rows  # List of tuples
+    return rows
 
 
 def delete_row(conn, table, url):
-    sql = f"DELETE FROM {table} WHERE url = ?"
     cur = conn.cursor()
-    cur.execute(sql, (url,))
+    cur.execute(f"DELETE FROM {table} WHERE url = '{url}'")
     conn.commit()
 
 
 def main():
-    database = "sozcu.db"
-    conn = create_connection(database)
+    conn = create_connection()
     create_tables(conn)
     conn.close()
 
