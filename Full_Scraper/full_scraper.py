@@ -1,6 +1,3 @@
-import csv
-
-import requests
 import requests.exceptions
 from urllib.parse import urlsplit
 

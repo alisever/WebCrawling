@@ -39,6 +39,10 @@ def create_tables(conn):
                             url text NOT NULL
                             ); """
 
+    keyword_urls_table = """ CREATE TABLE IF NOT EXISTS keyword_urls (
+                             url text NOT NULL
+                             ); """
+
     # create tables
     if conn is not None:
         # create tables
@@ -47,6 +51,7 @@ def create_tables(conn):
         create_table(conn, local_urls_table)
         create_table(conn, foreign_urls_table)
         create_table(conn, broken_urls_table)
+        create_table(conn, keyword_urls_table)
     else:
         print("Error! cannot create the database connection.")
 
