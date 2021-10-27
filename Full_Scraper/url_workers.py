@@ -8,6 +8,19 @@ import sqlite
 
 keyword = "feto"
 
+start_url = 'https://www.sozcu.com.tr/'
+
+sitemaps = []
+
+
+def sitemap_urls():
+    result = []
+    for sitemap in sitemaps:
+        r = requests.get(sitemap)
+        soup = BeautifulSoup(r.text, 'lxml')
+        result += [loc.string for loc in soup.find_all('loc')]
+    return result
+
 
 def url_worker(url, q):
     try:
@@ -20,29 +33,37 @@ def url_worker(url, q):
         q.put((sqlite.insert_row_if_not_in, ('broken_urls', url)))
         return
 
+    conn = sqlite.create_connection()
+    processed_urls = [a[0] for a in
+                      sqlite.select_all_rows(conn, 'processed_urls')]
+    if response.url in processed_urls:
+        q.put((sqlite.insert_row_if_not_in, ('processed_urls', url)))
+        q.put((sqlite.delete_row, ('new_urls', url)))
+        conn.close()
+        return
+    conn.close()
+
     # extract base url to resolve relative links
     parts = urlsplit(url)
     base = f"{parts.netloc}"
     strip_base = base.replace("www.", "")
     base_url = f"{parts.scheme}://{parts.netloc}"
-    path = url[:url.rfind('/') + 1] if '/' in parts.path else url
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    for link in soup.find_all('a'):
+    for anchor in list(set([link.attrs['href'] for link in soup.find_all('a')
+                            if 'href' in link.attrs])):
         # extract link url from the anchor
         flag = True
         local_link = None
-        anchor = link.attrs["href"] if "href" in link.attrs else ''
 
-        if anchor.startswith('/'):
+        if anchor.startswith('#'):
+            flag = False
+        elif anchor.startswith('/'):
             local_link = base_url + anchor
             q.put((sqlite.insert_row_if_not_in, ('local_urls', local_link)))
         elif strip_base in anchor:
             local_link = anchor
-            q.put((sqlite.insert_row_if_not_in, ('local_urls', local_link)))
-        elif not anchor.startswith('http'):
-            local_link = path + anchor
             q.put((sqlite.insert_row_if_not_in, ('local_urls', local_link)))
         else:
             flag = False
@@ -84,11 +105,17 @@ def main():
     watcher = pool.apply_async(url_listener, (q,))
 
     conn = sqlite.create_connection()
+    new_urls = [a[0] for a in sqlite.select_all_rows(conn, 'new_urls')]
+    processed_urls = [a[0] for a in
+                      sqlite.select_all_rows(conn, 'processed_urls')]
+    for link in [start_url] + sitemap_urls():
+        if link not in new_urls and link not in processed_urls:
+            q.put((sqlite.insert_row_if_not_in, ('new_urls', link)))
     sqlite.insert_row(conn, 'new_urls', 'https://www.sozcu.com.tr/')
     while sqlite.select_all_rows(conn, 'new_urls'):
         # fire off workers
         jobs = [pool.apply_async(url_worker, (i[0], q)) for i in
-                sqlite.select_all_rows(conn, 'new_urls')[0:40]]
+                sqlite.select_all_rows(conn, 'new_urls')[0:100]]
 
         # collect results from the workers through the pool result queue
         for job in jobs:
