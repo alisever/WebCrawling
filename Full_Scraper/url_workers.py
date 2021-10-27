@@ -19,6 +19,7 @@ def url_worker(url, q):
             requests.exceptions.TooManyRedirects):
         # add broken urls to it's own set, then continue
         q.put((sqlite.insert_row_if_not_in, ('broken_urls', url)))
+        q.put((sqlite.insert_row_if_not_in, ('processed_urls', url)))
         q.put((sqlite.delete_row, ('new_urls', url)))
         return
 
