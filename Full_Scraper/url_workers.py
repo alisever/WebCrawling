@@ -1,25 +1,12 @@
-import requests
 import multiprocessing as mp
 from urllib.parse import urlsplit
 
+import requests
 from bs4 import BeautifulSoup
 
 import sqlite
 
 keyword = "feto"
-
-start_url = 'https://www.sozcu.com.tr/'
-
-sitemaps = []
-
-
-def sitemap_urls():
-    result = []
-    for sitemap in sitemaps:
-        r = requests.get(sitemap)
-        soup = BeautifulSoup(r.text, 'lxml')
-        result += [loc.string for loc in soup.find_all('loc')]
-    return result
 
 
 def url_worker(url, q):
@@ -105,13 +92,6 @@ def main():
     watcher = pool.apply_async(url_listener, (q,))
 
     conn = sqlite.create_connection()
-    new_urls = [a[0] for a in sqlite.select_all_rows(conn, 'new_urls')]
-    processed_urls = [a[0] for a in
-                      sqlite.select_all_rows(conn, 'processed_urls')]
-    for link in [start_url] + sitemap_urls():
-        if link not in new_urls and link not in processed_urls:
-            q.put((sqlite.insert_row_if_not_in, ('new_urls', link)))
-    sqlite.insert_row(conn, 'new_urls', 'https://www.sozcu.com.tr/')
     while sqlite.select_all_rows(conn, 'new_urls'):
         # fire off workers
         jobs = [pool.apply_async(url_worker, (i[0], q)) for i in

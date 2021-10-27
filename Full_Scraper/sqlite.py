@@ -1,6 +1,24 @@
 import sqlite3
 from sqlite3 import Error
 
+import requests
+from bs4 import BeautifulSoup
+
+start_url = 'https://www.sozcu.com.tr/'
+
+sitemaps = ['https://www.sozcu.com.tr/tools/sitemaps/xml/sitemap_index.xml',
+            'https://www.sozcu.com.tr/tools/sitemaps/xml/sitemap_sozcutv_index.xml',
+            'https://www.sozcu.com.tr/sitemap_google_news.xml']
+
+
+def sitemap_urls():
+    result = []
+    for sitemap in sitemaps:
+        r = requests.get(sitemap)
+        soup = BeautifulSoup(r.text, 'lxml')
+        result += [loc.string for loc in soup.find_all('loc')]
+    return result
+
 
 def create_connection():
     try:
@@ -63,6 +81,15 @@ def insert_row(conn, table, url):
     return cur.lastrowid
 
 
+def first_links(conn):
+    mapped_urls = sitemap_urls()
+    links = [start_url] + mapped_urls
+    cur = conn.cursor()
+    insert = ', '.join([f"('{link}')" for link in links])
+    cur.execute(f"INSERT INTO new_urls (url) VALUES {insert}")
+    conn.commit()
+
+
 def insert_row_if_not_in(conn, table, url):
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM {table} WHERE url = '{url}'")
@@ -89,6 +116,7 @@ def delete_row(conn, table, url):
 def main():
     conn = create_connection()
     create_tables(conn)
+    first_links(conn)
     conn.close()
 
 
