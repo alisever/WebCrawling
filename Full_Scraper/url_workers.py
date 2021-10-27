@@ -15,9 +15,11 @@ def url_worker(url, q):
     except (requests.exceptions.MissingSchema,
             requests.exceptions.ConnectionError,
             requests.exceptions.InvalidURL,
-            requests.exceptions.InvalidSchema):
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.TooManyRedirects):
         # add broken urls to it's own set, then continue
         q.put((sqlite.insert_row_if_not_in, ('broken_urls', url)))
+        q.put((sqlite.delete_row, ('new_urls', url)))
         return
 
     conn = sqlite.create_connection()
