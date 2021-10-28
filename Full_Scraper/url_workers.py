@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import time
 from urllib.parse import urlsplit
 
 import requests
@@ -89,7 +90,7 @@ def main():
     # must use Manager queue here, or will not work
     manager = mp.Manager()
     q = manager.Queue()
-    pool = mp.Pool(mp.cpu_count() + 2)
+    pool = mp.Pool(mp.cpu_count() - 2)
 
     # put listener to work first
     watcher = pool.apply_async(url_listener, (q,))
@@ -98,16 +99,24 @@ def main():
     while sqlite.select_all_rows(conn, 'new_urls'):
         # fire off workers
         jobs = [pool.apply_async(url_worker, (i[0], q)) for i in
-                sqlite.select_all_rows(conn, 'new_urls')[0:100]]
+                sqlite.select_all_rows(conn, 'new_urls')[0:25]]
 
         # collect results from the workers through the pool result queue
         for job in jobs:
             job.get()
 
-        new_urls = len(sqlite.select_all_rows(conn, 'new_urls'))
-        processed_urls = len(sqlite.select_all_rows(conn, 'processed_urls'))
+        while not q.empty():
+            print("Waiting 2 seconds for queue.")
+            time.sleep(2)
+            print("Remaining queue: ", q.qsize())
 
-        print(new_urls, processed_urls)
+        new_urls = sqlite.select_all_rows(conn, 'new_urls')
+        processed_urls = sqlite.select_all_rows(conn, 'processed_urls')
+        for url in processed_urls:
+            if url in new_urls:
+                q.put((sqlite.delete_row, ('new_urls', url)))
+
+        print(len(new_urls), len(processed_urls))
 
     conn.close()
     # now we are done, kill the listener
