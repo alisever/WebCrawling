@@ -19,17 +19,17 @@ def url_worker(url, q):
             requests.exceptions.InvalidSchema,
             requests.exceptions.TooManyRedirects):
         # add broken urls to it's own set, then continue
-        q.put((sqlite.insert_row_if_not_in, ('broken_urls', url)))
-        q.put((sqlite.insert_row_if_not_in, ('processed_urls', url)))
-        q.put((sqlite.delete_row, ('new_urls', url)))
+        q.put(('insert_row_if_not_in', ('broken_urls', url)))
+        q.put(('insert_row_if_not_in', ('processed_urls', url)))
+        q.put(('delete_row', ('new_urls', url)))
         return
 
     conn = sqlite.create_connection()
     processed_urls = [a[0] for a in
                       sqlite.select_all_rows(conn, 'processed_urls')]
     if response.url in processed_urls:
-        q.put((sqlite.insert_row_if_not_in, ('processed_urls', url)))
-        q.put((sqlite.delete_row, ('new_urls', url)))
+        q.put(('insert_row_if_not_in', ('processed_urls', url)))
+        q.put(('delete_row', ('new_urls', url)))
         conn.close()
         return
     conn.close()
@@ -50,15 +50,19 @@ def url_worker(url, q):
 
         if anchor.startswith('#'):
             flag = False
+        elif anchor.startswith("mailto"):
+            flag = False
+        elif anchor.startswith("whatsapp"):
+            flag = False
         elif anchor.startswith('/'):
             local_link = base_url + anchor
-            q.put((sqlite.insert_row_if_not_in, ('local_urls', local_link)))
+            q.put(('insert_row_if_not_in', ('local_urls', local_link)))
         elif strip_base in anchor:
             local_link = anchor
-            q.put((sqlite.insert_row_if_not_in, ('local_urls', local_link)))
+            q.put(('insert_row_if_not_in', ('local_urls', local_link)))
         else:
             flag = False
-            q.put((sqlite.insert_row_if_not_in, ('foreign_urls', anchor)))
+            q.put(('insert_row_if_not_in', ('foreign_urls', anchor)))
 
         if flag:
             conn = sqlite.create_connection()
@@ -66,13 +70,13 @@ def url_worker(url, q):
             processed_urls = [a[0] for a in sqlite.select_all_rows(conn, 'processed_urls')]
             conn.close()
             if local_link not in new_urls and local_link not in processed_urls:
-                q.put((sqlite.insert_row_if_not_in, ('new_urls', local_link)))
+                q.put(('insert_row_if_not_in', ('new_urls', local_link)))
 
     if keyword in response.text.lower().encode('utf-8').decode():
-        q.put((sqlite.insert_row_if_not_in, ('keyword_urls', url)))
+        q.put(('insert_row_if_not_in', ('keyword_urls', url)))
 
-    q.put((sqlite.insert_row_if_not_in, ('processed_urls', url)))
-    q.put((sqlite.delete_row, ('new_urls', url)))
+    q.put(('insert_row_if_not_in', ('processed_urls', url)))
+    q.put(('delete_row', ('new_urls', url)))
 
 
 def url_listener(q):
@@ -83,7 +87,16 @@ def url_listener(q):
         if f == 'kill':
             conn.close()
             break
-        f(conn, *args)
+        elif f == 'insert_row_if_not_in':
+            try:
+                sqlite.insert_row_if_not_in(conn, *args)
+            except Exception as e:
+                print(args)
+                print(e)
+        elif f == 'delete_row':
+            sqlite.delete_row(conn, *args)
+        else:
+            f(conn, *args)
 
 
 def main():
@@ -112,9 +125,6 @@ def main():
 
         new_urls = sqlite.select_all_rows(conn, 'new_urls')
         processed_urls = sqlite.select_all_rows(conn, 'processed_urls')
-        for url in processed_urls:
-            if url in new_urls:
-                q.put((sqlite.delete_row, ('new_urls', url)))
 
         print(len(new_urls), len(processed_urls))
 
