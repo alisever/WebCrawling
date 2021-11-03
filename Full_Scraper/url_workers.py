@@ -112,7 +112,7 @@ def main():
     while sqlite.select_all_rows(conn, 'new_urls'):
         # fire off workers
         jobs = [pool.apply_async(url_worker, (i[0], q)) for i in
-                sqlite.select_all_rows(conn, 'new_urls')[0:25]]
+                sqlite.select_all_rows(conn, 'new_urls')[0:100]]
 
         # collect results from the workers through the pool result queue
         for job in jobs:
