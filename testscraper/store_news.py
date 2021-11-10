@@ -28,9 +28,6 @@ import pandas as pd
 #         converted = f'{split[0]}.{"0" * (2 - len(str(months.index(split[1]))))}{months.index(split[1])}.{split[2]}'
 #         return converted
 #
-# df = pd.read_json('../old_files/Haberturk/haberturk6.json')
-#
-# df['Tarih'] = df['Tarih'].map(date_cleaner)
-#
-# print(df['Tarih'][0:10])
-# df.to_excel('haberturk.xlsx', index=False)
+df = pd.read_json('tbmm2.json')
+
+df.to_excel('tbmm2.xlsx', index=False)
